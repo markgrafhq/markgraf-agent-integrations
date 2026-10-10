@@ -1,0 +1,9 @@
+{
+  "name": "markgraf",
+  "description": "Render and play Markgraf diagrams with the native CLI",
+  "author": {
+    "name": "Mark Eibes"
+  },
+  "skills": "./skills/",
+  "version": "0.0.0"
+}

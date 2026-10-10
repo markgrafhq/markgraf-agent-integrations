@@ -110,11 +110,56 @@ The complete app's third-party notices are included under
 The bundled FFmpeg/x264 [corresponding source archive](https://github.com/i-am-the-slime/purescript-native-encoding/releases/download/v0.0.2/ffmpeg-corresponding-source-v0.0.2.tar.gz)
 contains the matching sources, build recipe, and license notices.
 
-### Other coding agents
+## AI skill for native terminal rendering
 
-There is no Markgraf installer for Claude Code or Codex yet. Claude Code's
-[terminal mods](https://code.claude.com/docs/en/plugins/mods/overview) expose
-images, but need a separate adapter and a safe shared-memory consumption contract.
-The stock [Codex plugin interface](https://developers.openai.com/codex/plugins)
-does not expose an inline terminal renderer. Skills or MCP tools alone do not
-provide this playback surface.
+The portable `markgraf-terminal` skill teaches an agent to validate, render,
+and play `.markgraf` files through the CLI. It needs no patched coding agent,
+custom renderer plugin, HTTP bridge, or MCP server.
+
+Install it for your coding agent with:
+
+```sh
+npx skills add markgrafhq/markgraf-agent-integrations --skill markgraf-terminal
+```
+
+The same repository also exposes the skill as a standard Claude Code plugin:
+
+```sh
+claude plugin marketplace add markgrafhq/markgraf-agent-integrations
+claude plugin install markgraf@markgraf
+```
+
+Codex's standard plugin installer can use its marketplace:
+
+```sh
+codex plugin marketplace add markgrafhq/markgraf-agent-integrations
+codex plugin add markgraf@markgraf
+```
+
+These are skill installations, not additions to Claude's or Codex's terminal UI.
+Existing omp and OpenCode inline players remain available separately.
+
+The CLI is the rendering interface:
+
+```sh
+markgraf animation.markgraf --check
+markgraf animation.markgraf --terminal-graphics --fps 240
+```
+
+When installed as a plugin, the package includes the matching CLI at
+`native/Markgraf Editor.app/Contents/MacOS/markgraf`; leave it beside its sibling
+executables. A standalone skill installation can instead use `markgraf` on `PATH`.
+The distributed native app requires Apple Silicon macOS.
+
+Graphics playback runs in the foreground of the current terminal and restores
+its previous screen on exit. It requires Kitty graphics support, such as local
+Kitty or Ghostty. Space pauses/resumes, arrows step, and `q` or Escape exits.
+The target is 240 fps, not a throughput guarantee. Backgrounds are transparent;
+`--background` opts into theme paper and `--theme light|dark` selects the palette.
+`--play` opens the native editor and is not the terminal graphics command.
+
+**A skill cannot add graphics passthrough to an agent's shell tool.** The CLI must
+receive terminal protocol replies; allocating a PTY alone is not sufficient.
+If an agent captures or strips those bytes, the skill reports the limitation
+and gives the command to run directly in your terminal. It does not open a split,
+browser, or replacement host, or claim that an exported file was played inline.

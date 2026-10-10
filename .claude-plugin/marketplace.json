@@ -1,0 +1,12 @@
+{
+  "name": "markgraf",
+  "owner": { "name": "markgrafhq" },
+  "description": "Native Markgraf rendering and playback skills for coding agents.",
+  "plugins": [
+    {
+      "name": "markgraf",
+      "source": "./",
+      "description": "Render and play Markgraf diagrams with the native CLI"
+    }
+  ]
+}

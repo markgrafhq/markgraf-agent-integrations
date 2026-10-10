@@ -1,0 +1,9 @@
+{
+  "name": "markgraf",
+  "plugins": [
+    {
+      "name": "markgraf",
+      "source": { "source": "local", "path": "./" }
+    }
+  ]
+}
