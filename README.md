@@ -142,16 +142,23 @@ Install the opt-in response-mode skill:
 npx skills add markgrafhq/markgraf-agent-integrations --skill markgraf-only
 ```
 
-Say **“Markgraf-only mode”** or **“answer only in Markgraf”** to enable it for the
-conversation. Say **“Markgraf-only off”** or **“normal answers”** to stop.
-Installing the skill does not enable the mode. Later explicit format requests
-and higher-priority instructions still take precedence.
+Say **“Markgraf-only mode”** or **“answer only in Markgraf”** for every answer to
+use Markgraf. Alternatively, say **“Markgraf above 320 characters”**: replies up
+to and including 320 characters stay ordinary text; longer replies use
+Markgraf, even when they are only exposition. The count includes spaces and
+line breaks in the complete intended answer, before DSL or visual wrapping.
+The agent must not split a long answer into short messages to evade the rule.
 
-While enabled, answers and clarification questions use Markgraf without a
-surrounding prose recap. Short replies can be one text card; explanations can
-use actual topology and animation. If inline playback is unavailable, the answer
-is a single `.markgraf` source fence, with limitations expressed inside it—not
-a claim that playback succeeded. Native permission dialogs remain native.
+The latest requested mode applies to the conversation. Say **“Markgraf-only
+off”** or **“normal answers”** to stop either mode. Installing the skill does
+not activate it. Later explicit format requests and higher-priority
+instructions still take precedence.
+
+Markgraf answers have no surrounding prose recap. Direct replies can be text
+cards; explanations can use actual topology and animation. If inline playback
+is unavailable, the answer is a single `.markgraf` source fence, with
+limitations expressed inside it—not a claim that playback succeeded. Native
+permission dialogs remain native.
 Questions carrying a playback timestamp are anchored to that selected moment.
 
 ### Standard agent plugin installations
