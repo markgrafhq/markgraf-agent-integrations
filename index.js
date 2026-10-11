@@ -4479,6 +4479,9 @@ var readProp2 = /* @__PURE__ */ readProp(monadIdentity);
 var writeForeignString = {
   writeImpl: unsafeToForeign
 };
+var writeForeignNumber = {
+  writeImpl: unsafeToForeign
+};
 var writeForeignInt = {
   writeImpl: unsafeToForeign
 };

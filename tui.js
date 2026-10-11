@@ -4466,6 +4466,9 @@ var readProp2 = /* @__PURE__ */ readProp(monadIdentity);
 var writeForeignString = {
   writeImpl: unsafeToForeign
 };
+var writeForeignNumber = {
+  writeImpl: unsafeToForeign
+};
 var writeForeignInt = {
   writeImpl: unsafeToForeign
 };
@@ -5842,6 +5845,18 @@ var create = function(options2) {
           }()
         };
       };
+      var shownMoment = function __do() {
+        var state2 = read(stateRef)();
+        var $93 = state2.ready && (state2.visible && (!state2.disposed && state2.shownIndex >= 0));
+        if ($93) {
+          return new Just({
+            time: min3(state2.duration)(toNumber(state2.shownIndex) / toNumber(state2.fps)),
+            frame: state2.shownIndex,
+            fps: state2.fps
+          });
+        }
+        return Nothing.value;
+      };
       var render = function __do() {
         var current = surface.viewport();
         var previous = read(stateRef)();
@@ -5867,8 +5882,8 @@ var create = function(options2) {
         var allowed = surface.observeImage();
         var time = max3(0)(min3(state2.duration)(toNumber(state2.shownIndex) / toNumber(state2.fps)));
         var status = basename(options2.path) + (" · " + function() {
-          var $93 = !state2.ready;
-          if ($93) {
+          var $94 = !state2.ready;
+          if ($94) {
             return "Starting native Metal renderer...";
           }
           return seconds(time) + ("/" + (seconds(state2.duration) + ("s · " + function() {
@@ -5903,8 +5918,8 @@ var create = function(options2) {
                 var v = monotonicNowSec();
                 var time = playhead(state2)(v);
                 var index3 = function() {
-                  var $97 = time >= state2.duration;
-                  if ($97) {
+                  var $98 = time >= state2.duration;
+                  if ($98) {
                     return ceil2(state2.duration * toNumber(state2.fps));
                   }
                   if (state2.playing) {
@@ -5912,8 +5927,8 @@ var create = function(options2) {
                   }
                   return round2(time * toNumber(state2.fps));
                 }();
-                var $99 = index3 !== state2.shownIndex || state2.revision !== state2.shownRevision;
-                if ($99) {
+                var $100 = index3 !== state2.shownIndex || state2.revision !== state2.shownRevision;
+                if ($100) {
                   var request = {
                     revision: state2.revision,
                     index: index3,
@@ -5944,7 +5959,7 @@ var create = function(options2) {
                 return when1(state2.playing && time < state2.duration)(function() {
                   var deadline = state2.epoch + (toNumber(index3 + 1 | 0) / toNumber(state2.fps) - state2.baseTime);
                   return function __do() {
-                    var timer = setTimeout2(max1(1)(ceil2((deadline - v) * 1000)))($lazy_pump(215))();
+                    var timer = setTimeout2(max1(1)(ceil2((deadline - v) * 1000)))($lazy_pump(219))();
                     return write(new Just(timer))(tickRef)();
                   };
                 }())();
@@ -5954,7 +5969,7 @@ var create = function(options2) {
           }())();
         };
       });
-      var pump = $lazy_pump(194);
+      var pump = $lazy_pump(198);
       var painted = function(paint) {
         return function __do() {
           var state2 = read(stateRef)();
@@ -6107,8 +6122,8 @@ var create = function(options2) {
           }
           if (action instanceof TogglePlayback) {
             return when1(state2.ready)(seek(function() {
-              var $110 = !state2.playing && time >= state2.duration;
-              if ($110) {
+              var $111 = !state2.playing && time >= state2.duration;
+              if ($111) {
                 return 0;
               }
               return index3;
@@ -6120,7 +6135,7 @@ var create = function(options2) {
           if (action instanceof Step) {
             return when1(state2.ready)(seek(index3 + action.value0 | 0)(false))();
           }
-          throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 325, column 7 - line 329, column 68): " + [action.constructor.name]);
+          throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 329, column 7 - line 333, column 68): " + [action.constructor.name]);
         };
       };
       var completeTransfer = function(request) {
@@ -6198,8 +6213,8 @@ var create = function(options2) {
           if (event instanceof Rendered) {
             if (state2.pipeline instanceof Rendering) {
               var active = surface.active();
-              var $120 = state2.disposed || (!state2.visible || (!active || state2.pipeline.value0.revision !== state2.revision));
-              if ($120) {
+              var $121 = state2.disposed || (!state2.visible || (!active || state2.pipeline.value0.revision !== state2.revision));
+              if ($121) {
                 bind1(read(processRef))(traverse_2(function($$native) {
                   return $$native.release(event.value0.id);
                 }))();
@@ -6291,7 +6306,7 @@ var create = function(options2) {
               if (sent instanceof Right) {
                 return unit;
               }
-              throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 288, column 15 - line 292, column 37): " + [sent.constructor.name]);
+              throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 292, column 15 - line 296, column 37): " + [sent.constructor.name]);
             }
             return unless1(state2.disposed)(failPlayback("Native renderer sent an unsolicited frame."))();
           }
@@ -6396,7 +6411,7 @@ var create = function(options2) {
               }
               return failPlayback(response.value0)();
             }
-            throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 245, column 47 - line 261, column 74): " + [response.constructor.name]);
+            throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 249, column 47 - line 265, column 74): " + [response.constructor.name]);
           }
           return unit;
         };
@@ -6415,10 +6430,11 @@ var create = function(options2) {
           render,
           input,
           snapshot,
+          shownMoment,
           dispose: cleanup
         };
       }
-      throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 365, column 3 - line 369, column 57): " + [launched.constructor.name]);
+      throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 379, column 3 - line 383, column 70): " + [launched.constructor.name]);
     };
   };
 };

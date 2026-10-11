@@ -976,6 +976,218 @@ var $$try2 = function(dictMonadError) {
   };
 };
 
+// npm/output/Data.Foldable/foreign.js
+var foldrArray = function(f) {
+  return function(init) {
+    return function(xs) {
+      var acc = init;
+      var len = xs.length;
+      for (var i = len - 1;i >= 0; i--) {
+        acc = f(xs[i])(acc);
+      }
+      return acc;
+    };
+  };
+};
+var foldlArray = function(f) {
+  return function(init) {
+    return function(xs) {
+      var acc = init;
+      var len = xs.length;
+      for (var i = 0;i < len; i++) {
+        acc = f(acc)(xs[i]);
+      }
+      return acc;
+    };
+  };
+};
+// npm/output/Control.Plus/index.js
+var empty = function(dict) {
+  return dict.empty;
+};
+// npm/output/Data.Tuple/index.js
+var Tuple = /* @__PURE__ */ function() {
+  function Tuple2(value0, value1) {
+    this.value0 = value0;
+    this.value1 = value1;
+  }
+  Tuple2.create = function(value0) {
+    return function(value1) {
+      return new Tuple2(value0, value1);
+    };
+  };
+  return Tuple2;
+}();
+var snd = function(v) {
+  return v.value1;
+};
+var fst = function(v) {
+  return v.value0;
+};
+
+// npm/output/Data.Bifunctor/index.js
+var identity4 = /* @__PURE__ */ identity(categoryFn);
+var bimap = function(dict) {
+  return dict.bimap;
+};
+var lmap = function(dictBifunctor) {
+  var bimap1 = bimap(dictBifunctor);
+  return function(f) {
+    return bimap1(f)(identity4);
+  };
+};
+var bifunctorEither = {
+  bimap: function(v) {
+    return function(v1) {
+      return function(v2) {
+        if (v2 instanceof Left) {
+          return new Left(v(v2.value0));
+        }
+        if (v2 instanceof Right) {
+          return new Right(v1(v2.value0));
+        }
+        throw new Error("Failed pattern match at Data.Bifunctor (line 38, column 1 - line 40, column 36): " + [v.constructor.name, v1.constructor.name, v2.constructor.name]);
+      };
+    };
+  }
+};
+
+// npm/output/Unsafe.Coerce/foreign.js
+var unsafeCoerce2 = function(x) {
+  return x;
+};
+// npm/output/Safe.Coerce/index.js
+var coerce = function() {
+  return unsafeCoerce2;
+};
+
+// npm/output/Data.Newtype/index.js
+var coerce2 = /* @__PURE__ */ coerce();
+var unwrap = function() {
+  return coerce2;
+};
+
+// npm/output/Data.Foldable/index.js
+var foldr = function(dict) {
+  return dict.foldr;
+};
+var traverse_ = function(dictApplicative) {
+  var applySecond2 = applySecond(dictApplicative.Apply0());
+  var pure3 = pure(dictApplicative);
+  return function(dictFoldable) {
+    var foldr2 = foldr(dictFoldable);
+    return function(f) {
+      return foldr2(function($454) {
+        return applySecond2(f($454));
+      })(pure3(unit));
+    };
+  };
+};
+var for_ = function(dictApplicative) {
+  var traverse_1 = traverse_(dictApplicative);
+  return function(dictFoldable) {
+    return flip(traverse_1(dictFoldable));
+  };
+};
+var foldl = function(dict) {
+  return dict.foldl;
+};
+var intercalate = function(dictFoldable) {
+  var foldl2 = foldl(dictFoldable);
+  return function(dictMonoid) {
+    var append2 = append(dictMonoid.Semigroup0());
+    var mempty2 = mempty(dictMonoid);
+    return function(sep) {
+      return function(xs) {
+        var go = function(v) {
+          return function(v1) {
+            if (v.init) {
+              return {
+                init: false,
+                acc: v1
+              };
+            }
+            return {
+              init: false,
+              acc: append2(v.acc)(append2(sep)(v1))
+            };
+          };
+        };
+        return foldl2(go)({
+          init: true,
+          acc: mempty2
+        })(xs).acc;
+      };
+    };
+  };
+};
+var foldableMaybe = {
+  foldr: function(v) {
+    return function(v1) {
+      return function(v2) {
+        if (v2 instanceof Nothing) {
+          return v1;
+        }
+        if (v2 instanceof Just) {
+          return v(v2.value0)(v1);
+        }
+        throw new Error("Failed pattern match at Data.Foldable (line 138, column 1 - line 144, column 27): " + [v.constructor.name, v1.constructor.name, v2.constructor.name]);
+      };
+    };
+  },
+  foldl: function(v) {
+    return function(v1) {
+      return function(v2) {
+        if (v2 instanceof Nothing) {
+          return v1;
+        }
+        if (v2 instanceof Just) {
+          return v(v1)(v2.value0);
+        }
+        throw new Error("Failed pattern match at Data.Foldable (line 138, column 1 - line 144, column 27): " + [v.constructor.name, v1.constructor.name, v2.constructor.name]);
+      };
+    };
+  },
+  foldMap: function(dictMonoid) {
+    var mempty2 = mempty(dictMonoid);
+    return function(v) {
+      return function(v1) {
+        if (v1 instanceof Nothing) {
+          return mempty2;
+        }
+        if (v1 instanceof Just) {
+          return v(v1.value0);
+        }
+        throw new Error("Failed pattern match at Data.Foldable (line 138, column 1 - line 144, column 27): " + [v.constructor.name, v1.constructor.name]);
+      };
+    };
+  }
+};
+var foldMapDefaultR = function(dictFoldable) {
+  var foldr2 = foldr(dictFoldable);
+  return function(dictMonoid) {
+    var append2 = append(dictMonoid.Semigroup0());
+    var mempty2 = mempty(dictMonoid);
+    return function(f) {
+      return foldr2(function(x) {
+        return function(acc) {
+          return append2(f(x))(acc);
+        };
+      })(mempty2);
+    };
+  };
+};
+var foldableArray = {
+  foldr: foldrArray,
+  foldl: foldlArray,
+  foldMap: function(dictMonoid) {
+    return foldMapDefaultR(foldableArray)(dictMonoid);
+  }
+};
+var foldMap = function(dict) {
+  return dict.foldMap;
+};
+
 // npm/output/Data.Nullable/foreign.js
 var nullImpl = null;
 function nullable(a, r, f) {
@@ -1996,10 +2208,6 @@ var modify_ = function(f) {
   };
 };
 
-// npm/output/Unsafe.Coerce/foreign.js
-var unsafeCoerce2 = function(x) {
-  return x;
-};
 // npm/output/Control.Monad.ST.Internal/foreign.js
 var map_ = function(f) {
   return function(a) {
@@ -2020,26 +2228,6 @@ var foreach = function(as) {
 // npm/output/Control.Monad.ST.Internal/index.js
 var functorST = {
   map: map_
-};
-
-// npm/output/Data.Tuple/index.js
-var Tuple = /* @__PURE__ */ function() {
-  function Tuple2(value0, value1) {
-    this.value0 = value0;
-    this.value1 = value1;
-  }
-  Tuple2.create = function(value0) {
-    return function(value1) {
-      return new Tuple2(value0, value1);
-    };
-  };
-  return Tuple2;
-}();
-var snd = function(v) {
-  return v.value1;
-};
-var fst = function(v) {
-  return v.value0;
 };
 
 // npm/output/Effect.Class/index.js
@@ -2157,201 +2345,12 @@ var monadThrowExceptT = function(dictMonad) {
     }
   };
 };
-// npm/output/Control.Plus/index.js
-var empty = function(dict) {
-  return dict.empty;
-};
-
-// npm/output/Safe.Coerce/index.js
-var coerce = function() {
-  return unsafeCoerce2;
-};
-
-// npm/output/Data.Newtype/index.js
-var coerce2 = /* @__PURE__ */ coerce();
-var unwrap = function() {
-  return coerce2;
-};
 // npm/output/Control.Parallel.Class/index.js
 var sequential = function(dict) {
   return dict.sequential;
 };
 var parallel = function(dict) {
   return dict.parallel;
-};
-
-// npm/output/Data.Foldable/foreign.js
-var foldrArray = function(f) {
-  return function(init) {
-    return function(xs) {
-      var acc = init;
-      var len = xs.length;
-      for (var i = len - 1;i >= 0; i--) {
-        acc = f(xs[i])(acc);
-      }
-      return acc;
-    };
-  };
-};
-var foldlArray = function(f) {
-  return function(init) {
-    return function(xs) {
-      var acc = init;
-      var len = xs.length;
-      for (var i = 0;i < len; i++) {
-        acc = f(acc)(xs[i]);
-      }
-      return acc;
-    };
-  };
-};
-
-// npm/output/Data.Bifunctor/index.js
-var identity4 = /* @__PURE__ */ identity(categoryFn);
-var bimap = function(dict) {
-  return dict.bimap;
-};
-var lmap = function(dictBifunctor) {
-  var bimap1 = bimap(dictBifunctor);
-  return function(f) {
-    return bimap1(f)(identity4);
-  };
-};
-var bifunctorEither = {
-  bimap: function(v) {
-    return function(v1) {
-      return function(v2) {
-        if (v2 instanceof Left) {
-          return new Left(v(v2.value0));
-        }
-        if (v2 instanceof Right) {
-          return new Right(v1(v2.value0));
-        }
-        throw new Error("Failed pattern match at Data.Bifunctor (line 38, column 1 - line 40, column 36): " + [v.constructor.name, v1.constructor.name, v2.constructor.name]);
-      };
-    };
-  }
-};
-
-// npm/output/Data.Foldable/index.js
-var foldr = function(dict) {
-  return dict.foldr;
-};
-var traverse_ = function(dictApplicative) {
-  var applySecond2 = applySecond(dictApplicative.Apply0());
-  var pure3 = pure(dictApplicative);
-  return function(dictFoldable) {
-    var foldr2 = foldr(dictFoldable);
-    return function(f) {
-      return foldr2(function($454) {
-        return applySecond2(f($454));
-      })(pure3(unit));
-    };
-  };
-};
-var for_ = function(dictApplicative) {
-  var traverse_1 = traverse_(dictApplicative);
-  return function(dictFoldable) {
-    return flip(traverse_1(dictFoldable));
-  };
-};
-var foldl = function(dict) {
-  return dict.foldl;
-};
-var intercalate = function(dictFoldable) {
-  var foldl2 = foldl(dictFoldable);
-  return function(dictMonoid) {
-    var append2 = append(dictMonoid.Semigroup0());
-    var mempty2 = mempty(dictMonoid);
-    return function(sep) {
-      return function(xs) {
-        var go = function(v) {
-          return function(v1) {
-            if (v.init) {
-              return {
-                init: false,
-                acc: v1
-              };
-            }
-            return {
-              init: false,
-              acc: append2(v.acc)(append2(sep)(v1))
-            };
-          };
-        };
-        return foldl2(go)({
-          init: true,
-          acc: mempty2
-        })(xs).acc;
-      };
-    };
-  };
-};
-var foldableMaybe = {
-  foldr: function(v) {
-    return function(v1) {
-      return function(v2) {
-        if (v2 instanceof Nothing) {
-          return v1;
-        }
-        if (v2 instanceof Just) {
-          return v(v2.value0)(v1);
-        }
-        throw new Error("Failed pattern match at Data.Foldable (line 138, column 1 - line 144, column 27): " + [v.constructor.name, v1.constructor.name, v2.constructor.name]);
-      };
-    };
-  },
-  foldl: function(v) {
-    return function(v1) {
-      return function(v2) {
-        if (v2 instanceof Nothing) {
-          return v1;
-        }
-        if (v2 instanceof Just) {
-          return v(v1)(v2.value0);
-        }
-        throw new Error("Failed pattern match at Data.Foldable (line 138, column 1 - line 144, column 27): " + [v.constructor.name, v1.constructor.name, v2.constructor.name]);
-      };
-    };
-  },
-  foldMap: function(dictMonoid) {
-    var mempty2 = mempty(dictMonoid);
-    return function(v) {
-      return function(v1) {
-        if (v1 instanceof Nothing) {
-          return mempty2;
-        }
-        if (v1 instanceof Just) {
-          return v(v1.value0);
-        }
-        throw new Error("Failed pattern match at Data.Foldable (line 138, column 1 - line 144, column 27): " + [v.constructor.name, v1.constructor.name]);
-      };
-    };
-  }
-};
-var foldMapDefaultR = function(dictFoldable) {
-  var foldr2 = foldr(dictFoldable);
-  return function(dictMonoid) {
-    var append2 = append(dictMonoid.Semigroup0());
-    var mempty2 = mempty(dictMonoid);
-    return function(f) {
-      return foldr2(function(x) {
-        return function(acc) {
-          return append2(f(x))(acc);
-        };
-      })(mempty2);
-    };
-  };
-};
-var foldableArray = {
-  foldr: foldrArray,
-  foldl: foldlArray,
-  foldMap: function(dictMonoid) {
-    return foldMapDefaultR(foldableArray)(dictMonoid);
-  }
-};
-var foldMap = function(dict) {
-  return dict.foldMap;
 };
 
 // npm/output/Data.Traversable/foreign.js
@@ -4548,6 +4547,9 @@ var readProp2 = /* @__PURE__ */ readProp(monadIdentity);
 var writeForeignString = {
   writeImpl: unsafeToForeign
 };
+var writeForeignNumber = {
+  writeImpl: unsafeToForeign
+};
 var writeForeignInt = {
   writeImpl: unsafeToForeign
 };
@@ -5924,6 +5926,18 @@ var create = function(options2) {
           }()
         };
       };
+      var shownMoment = function __do() {
+        var state2 = read(stateRef)();
+        var $93 = state2.ready && (state2.visible && (!state2.disposed && state2.shownIndex >= 0));
+        if ($93) {
+          return new Just({
+            time: min3(state2.duration)(toNumber(state2.shownIndex) / toNumber(state2.fps)),
+            frame: state2.shownIndex,
+            fps: state2.fps
+          });
+        }
+        return Nothing.value;
+      };
       var render = function __do() {
         var current = surface.viewport();
         var previous = read(stateRef)();
@@ -5949,8 +5963,8 @@ var create = function(options2) {
         var allowed = surface.observeImage();
         var time = max3(0)(min3(state2.duration)(toNumber(state2.shownIndex) / toNumber(state2.fps)));
         var status = basename(options2.path) + (" · " + function() {
-          var $93 = !state2.ready;
-          if ($93) {
+          var $94 = !state2.ready;
+          if ($94) {
             return "Starting native Metal renderer...";
           }
           return seconds(time) + ("/" + (seconds(state2.duration) + ("s · " + function() {
@@ -5985,8 +5999,8 @@ var create = function(options2) {
                 var v = monotonicNowSec();
                 var time = playhead(state2)(v);
                 var index3 = function() {
-                  var $97 = time >= state2.duration;
-                  if ($97) {
+                  var $98 = time >= state2.duration;
+                  if ($98) {
                     return ceil2(state2.duration * toNumber(state2.fps));
                   }
                   if (state2.playing) {
@@ -5994,8 +6008,8 @@ var create = function(options2) {
                   }
                   return round2(time * toNumber(state2.fps));
                 }();
-                var $99 = index3 !== state2.shownIndex || state2.revision !== state2.shownRevision;
-                if ($99) {
+                var $100 = index3 !== state2.shownIndex || state2.revision !== state2.shownRevision;
+                if ($100) {
                   var request = {
                     revision: state2.revision,
                     index: index3,
@@ -6026,7 +6040,7 @@ var create = function(options2) {
                 return when1(state2.playing && time < state2.duration)(function() {
                   var deadline = state2.epoch + (toNumber(index3 + 1 | 0) / toNumber(state2.fps) - state2.baseTime);
                   return function __do() {
-                    var timer = setTimeout2(max1(1)(ceil2((deadline - v) * 1000)))($lazy_pump(215))();
+                    var timer = setTimeout2(max1(1)(ceil2((deadline - v) * 1000)))($lazy_pump(219))();
                     return write(new Just(timer))(tickRef)();
                   };
                 }())();
@@ -6036,7 +6050,7 @@ var create = function(options2) {
           }())();
         };
       });
-      var pump = $lazy_pump(194);
+      var pump = $lazy_pump(198);
       var painted = function(paint) {
         return function __do() {
           var state2 = read(stateRef)();
@@ -6189,8 +6203,8 @@ var create = function(options2) {
           }
           if (action instanceof TogglePlayback) {
             return when1(state2.ready)(seek(function() {
-              var $110 = !state2.playing && time >= state2.duration;
-              if ($110) {
+              var $111 = !state2.playing && time >= state2.duration;
+              if ($111) {
                 return 0;
               }
               return index3;
@@ -6202,7 +6216,7 @@ var create = function(options2) {
           if (action instanceof Step) {
             return when1(state2.ready)(seek(index3 + action.value0 | 0)(false))();
           }
-          throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 325, column 7 - line 329, column 68): " + [action.constructor.name]);
+          throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 329, column 7 - line 333, column 68): " + [action.constructor.name]);
         };
       };
       var completeTransfer = function(request) {
@@ -6280,8 +6294,8 @@ var create = function(options2) {
           if (event instanceof Rendered) {
             if (state2.pipeline instanceof Rendering) {
               var active = surface.active();
-              var $120 = state2.disposed || (!state2.visible || (!active || state2.pipeline.value0.revision !== state2.revision));
-              if ($120) {
+              var $121 = state2.disposed || (!state2.visible || (!active || state2.pipeline.value0.revision !== state2.revision));
+              if ($121) {
                 bind1(read(processRef))(traverse_2(function($$native) {
                   return $$native.release(event.value0.id);
                 }))();
@@ -6373,7 +6387,7 @@ var create = function(options2) {
               if (sent instanceof Right) {
                 return unit;
               }
-              throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 288, column 15 - line 292, column 37): " + [sent.constructor.name]);
+              throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 292, column 15 - line 296, column 37): " + [sent.constructor.name]);
             }
             return unless1(state2.disposed)(failPlayback("Native renderer sent an unsolicited frame."))();
           }
@@ -6478,7 +6492,7 @@ var create = function(options2) {
               }
               return failPlayback(response.value0)();
             }
-            throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 245, column 47 - line 261, column 74): " + [response.constructor.name]);
+            throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 249, column 47 - line 265, column 74): " + [response.constructor.name]);
           }
           return unit;
         };
@@ -6497,10 +6511,11 @@ var create = function(options2) {
           render,
           input,
           snapshot,
+          shownMoment,
           dispose: cleanup
         };
       }
-      throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 365, column 3 - line 369, column 57): " + [launched.constructor.name]);
+      throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 379, column 3 - line 383, column 70): " + [launched.constructor.name]);
     };
   };
 };
@@ -6519,6 +6534,14 @@ var commandOptions = function(requested) {
   };
 };
 
+// npm/output/Omp.UI/foreign.js
+var pasteToEditor = (context) => (text) => () => {
+  const ui = context?.ui;
+  if (typeof ui?.pasteToEditor !== "function")
+    return false;
+  ui.pasteToEditor(text);
+  return true;
+};
 // npm/output/Promise.Internal/foreign.js
 var newImpl3 = function(k) {
   return new Promise(k);
@@ -6616,8 +6639,11 @@ var toAffE = function(f) {
 // npm/output/Markgraf.Omp/index.js
 var map15 = /* @__PURE__ */ map(functorEffect);
 var pure8 = /* @__PURE__ */ pure(applicativeEffect);
+var map16 = /* @__PURE__ */ map(functorEither);
 var discard3 = /* @__PURE__ */ discard(discardUnit);
 var append4 = /* @__PURE__ */ append(semigroupArray);
+var traverse_3 = /* @__PURE__ */ traverse_(applicativeEffect)(foldableMaybe);
+var applySecond3 = /* @__PURE__ */ applySecond(applyEffect);
 var fromAff2 = /* @__PURE__ */ fromAff();
 var bind12 = /* @__PURE__ */ bind(bindAff);
 var liftEffect5 = /* @__PURE__ */ liftEffect(monadEffectAff);
@@ -6625,6 +6651,23 @@ var discard22 = /* @__PURE__ */ discard3(bindAff);
 var unless4 = /* @__PURE__ */ unless(applicativeAff);
 var throwError3 = /* @__PURE__ */ throwError(monadThrowAff);
 var pure13 = /* @__PURE__ */ pure(applicativeAff);
+var writeJSON3 = /* @__PURE__ */ writeJSON(/* @__PURE__ */ writeForeignRecord()(/* @__PURE__ */ writeForeignFieldsCons({
+  reflectSymbol: function() {
+    return "fps";
+  }
+})(writeForeignInt)(/* @__PURE__ */ writeForeignFieldsCons({
+  reflectSymbol: function() {
+    return "frame";
+  }
+})(writeForeignInt)(/* @__PURE__ */ writeForeignFieldsCons({
+  reflectSymbol: function() {
+    return "path";
+  }
+})(writeForeignString)(/* @__PURE__ */ writeForeignFieldsCons({
+  reflectSymbol: function() {
+    return "timeSeconds";
+  }
+})(writeForeignNumber)(writeForeignFieldsNilRowR)()()())()()())()()())()()()));
 var createPlayer = function(request) {
   return function(surface) {
     return function __do() {
@@ -6640,17 +6683,22 @@ var createPlayer = function(request) {
         observeImage: observeImage(surface.tui)(image),
         transmit: transmit(surface.tui)(image),
         onAcknowledgement: function(acknowledge) {
-          return onAcknowledgement(surface.tui)(image)(function($28) {
-            return acknowledge(protocolAcknowledgement($28));
+          return onAcknowledgement(surface.tui)(image)(function($65) {
+            return acknowledge(protocolAcknowledgement($65));
           });
         },
         onPaint: onPaint(surface.tui)(image),
         releaseImage: releaseImage(surface.tui)(image),
         requestRender: requestRender(surface.tui),
-        done: surface.done,
+        done: function() {
+          var $66 = map16($$const(Nothing.value));
+          return function($67) {
+            return surface.done($66($67));
+          };
+        }(),
         theme: function() {
-          var $20 = isLight(surface.theme);
-          if ($20) {
+          var $55 = isLight(surface.theme);
+          if ($55) {
             return Light.value;
           }
           return Dark.value;
@@ -6661,12 +6709,12 @@ var createPlayer = function(request) {
           var view = player.render();
           var cached = read(rowsRef)();
           var rows = function() {
-            var $21 = !view.imageVisible;
-            if ($21) {
+            var $56 = !view.imageVisible;
+            if ($56) {
               return ["Inline image hidden by omp's image budget."];
             }
-            var $22 = cached.columns === view.size.columns && cached.rows === view.size.rows;
-            if ($22) {
+            var $57 = cached.columns === view.size.columns && cached.rows === view.size.rows;
+            if ($57) {
               return cached.lines;
             }
             var lines = placeholderRows(image)(view.size.columns)(view.size.rows);
@@ -6678,10 +6726,18 @@ var createPlayer = function(request) {
             return lines;
           }();
           var line = formatLine(surface.theme)(width);
-          return append4([line(view.status)])(append4(rows)([line(view.footer)]));
+          return append4([line(view.status)])(append4(rows)([line(view.footer + " · ? ask")]));
         };
       };
       var handleInput = function(key) {
+        if (matchesKey(key)("?")) {
+          return function __do() {
+            var moment = player.shownMoment();
+            return traverse_3(function(selected) {
+              return applySecond3(player.dispose)(surface.done(new Right(new Just(selected))));
+            })(moment)();
+          };
+        }
         if (matchesKey(key)("q") || (matchesKey(key)("escape") || matchesKey(key)("ctrl+c"))) {
           return player.input(Close.value);
         }
@@ -6700,7 +6756,7 @@ var createPlayer = function(request) {
         if (otherwise) {
           return pure8(unit);
         }
-        throw new Error("Failed pattern match at Markgraf.Omp (line 70, column 5 - line 76, column 30): " + [key.constructor.name]);
+        throw new Error("Failed pattern match at Markgraf.Omp (line 78, column 5 - line 87, column 30): " + [key.constructor.name]);
       };
       return {
         render,
@@ -6724,10 +6780,28 @@ var play = function(root) {
                     if (result instanceof Left) {
                       return throwError3(error(result.value0));
                     }
-                    if (result instanceof Right) {
+                    if (result instanceof Right && result.value0 instanceof Nothing) {
                       return pure13("Closed inline Markgraf playback: " + request.path);
                     }
-                    throw new Error("Failed pattern match at Markgraf.Omp (line 37, column 3 - line 39, column 74): " + [result.constructor.name]);
+                    if (result instanceof Right && result.value0 instanceof Just) {
+                      var anchor = writeJSON3({
+                        path: request.path,
+                        timeSeconds: result.value0.value0.time,
+                        frame: result.value0.value0.frame,
+                        fps: result.value0.value0.fps
+                      });
+                      return bind12(liftEffect5(pasteToEditor(context.ctx)(`
+
+Markgraf moment (inspect this frame before answering):
+` + (anchor + `
+
+`))))(function(inserted) {
+                        return discard22(unless4(inserted)(throwError3(error("omp's composer is unavailable. Selected Markgraf moment: " + anchor))))(function() {
+                          return pure13("Prepared a question draft for Markgraf moment " + (anchor + ". No question has been submitted; wait for the user to send it."));
+                        });
+                      });
+                    }
+                    throw new Error("Failed pattern match at Markgraf.Omp (line 40, column 3 - line 47, column 141): " + [result.constructor.name]);
                   });
                 });
               });
@@ -6751,8 +6825,8 @@ var register2 = function(root) {
           return play(root)(context)({
             path: options2.path,
             transparency: function() {
-              var $27 = fromMaybe(false)(toMaybe(options2.background));
-              if ($27) {
+              var $64 = fromMaybe(false)(toMaybe(options2.background));
+              if ($64) {
                 return PaintBackground.value;
               }
               return TransparentBackground.value;

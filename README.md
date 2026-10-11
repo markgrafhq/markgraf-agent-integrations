@@ -29,6 +29,18 @@ Inside omp:
 Space pauses/resumes, left/right arrows pause and step by 1/120 second, Home
 returns to the beginning, and `q`, Escape, or Ctrl-C closes the player and
 restores the editor. Playback loops and fits the available terminal size.
+
+Press `?` to ask about a moment. The player closes and inserts the diagram path,
+exact sample time, frame number, and frame rate into your existing composer
+draft. Type your question and send it normally; nothing is submitted
+automatically. The timestamp comes from the last frame acknowledged by the
+terminal, not a clock that keeps advancing while you type. Pause and use the
+arrow keys first to select a particular frame.
+
+This question shortcut is currently omp-only. OpenCode's published plugin API
+does not expose owner-scoped composer editing, so it does not receive a shortcut
+that could accidentally change another session's draft.
+
 When opened, the player selects Markgraf's light or dark palette from omp's
 active theme, including custom themes; it does not copy individual theme colors.
 The diagram background is transparent by default. Use `/markgraf --background <path>`
@@ -122,7 +134,29 @@ Install it for your coding agent with:
 npx skills add markgrafhq/markgraf-agent-integrations --skill markgraf-terminal
 ```
 
-The same repository also exposes the skill as a standard Claude Code plugin:
+### Markgraf-only answers
+
+Install the opt-in response-mode skill:
+
+```sh
+npx skills add markgrafhq/markgraf-agent-integrations --skill markgraf-only
+```
+
+Say **“Markgraf-only mode”** or **“answer only in Markgraf”** to enable it for the
+conversation. Say **“Markgraf-only off”** or **“normal answers”** to stop.
+Installing the skill does not enable the mode. Later explicit format requests
+and higher-priority instructions still take precedence.
+
+While enabled, answers and clarification questions use Markgraf without a
+surrounding prose recap. Short replies can be one text card; explanations can
+use actual topology and animation. If inline playback is unavailable, the answer
+is a single `.markgraf` source fence, with limitations expressed inside it—not
+a claim that playback succeeded. Native permission dialogs remain native.
+Questions carrying a playback timestamp are anchored to that selected moment.
+
+### Standard agent plugin installations
+
+The same repository also exposes both skills as a standard Claude Code plugin:
 
 ```sh
 claude plugin marketplace add markgrafhq/markgraf-agent-integrations
