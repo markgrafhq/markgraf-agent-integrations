@@ -1,6 +1,23 @@
 // npm/agents/omp.js
 import { fileURLToPath } from "node:url";
 
+// npm/output/Control.Apply/foreign.js
+var arrayApply = function(fs) {
+  return function(xs) {
+    var l = fs.length;
+    var k = xs.length;
+    var result = new Array(l * k);
+    var n = 0;
+    for (var i = 0;i < l; i++) {
+      var f = fs[i];
+      for (var j = 0;j < k; j++) {
+        result[n++] = f(xs[j]);
+      }
+    }
+    return result;
+  };
+};
+
 // npm/output/Control.Semigroupoid/index.js
 var semigroupoidFn = {
   compose: function(f) {
@@ -103,6 +120,12 @@ var functorArray = {
 
 // npm/output/Control.Apply/index.js
 var identity2 = /* @__PURE__ */ identity(categoryFn);
+var applyArray = {
+  apply: arrayApply,
+  Functor0: function() {
+    return functorArray;
+  }
+};
 var apply = function(dict) {
   return dict.apply;
 };
@@ -156,6 +179,14 @@ var liftA1 = function(dictApplicative) {
       return apply2(pure1(f))(a);
     };
   };
+};
+var applicativeArray = {
+  pure: function(x) {
+    return [x];
+  },
+  Apply0: function() {
+    return applyArray;
+  }
 };
 
 // npm/output/Control.Bind/foreign.js
@@ -4172,6 +4203,9 @@ function tagOf(value) {
 function isNull(value) {
   return value === null;
 }
+var isArray = Array.isArray || function(value) {
+  return Object.prototype.toString.call(value) === "[object Array]";
+};
 // npm/output/Data.List.NonEmpty/index.js
 var singleton5 = /* @__PURE__ */ function() {
   var $200 = singleton3(plusList);
@@ -4264,6 +4298,19 @@ var fail = function(dictMonad) {
   var $153 = throwError(monadThrowExceptT(dictMonad));
   return function($154) {
     return $153(singleton5($154));
+  };
+};
+var readArray = function(dictMonad) {
+  var pure1 = pure(applicativeExceptT(dictMonad));
+  var fail1 = fail(dictMonad);
+  return function(value) {
+    if (isArray(value)) {
+      return pure1(unsafeFromForeign(value));
+    }
+    if (otherwise) {
+      return fail1(new TypeMismatch("array", tagOf(value)));
+    }
+    throw new Error("Failed pattern match at Foreign (line 164, column 1 - line 164, column 99): " + [value.constructor.name]);
   };
 };
 var unsafeReadTagged = function(dictMonad) {
@@ -4544,6 +4591,8 @@ var readNull2 = /* @__PURE__ */ readNull(monadIdentity);
 var lmap2 = /* @__PURE__ */ lmap(bifunctorEither);
 var composeKleisliFlipped2 = /* @__PURE__ */ composeKleisliFlipped(bindExceptT2);
 var readProp2 = /* @__PURE__ */ readProp(monadIdentity);
+var mapWithIndex4 = /* @__PURE__ */ mapWithIndex(functorWithIndexArray);
+var readArray2 = /* @__PURE__ */ readArray(monadIdentity);
 var writeForeignString = {
   writeImpl: unsafeToForeign
 };
@@ -4658,6 +4707,39 @@ var writeForeignNullable = function(dictWriteForeign) {
 var write3 = function(dictWriteForeign) {
   return writeImpl(dictWriteForeign);
 };
+var sequenceCombining = function(dictMonoid) {
+  var append22 = append(dictMonoid.Semigroup0());
+  var mempty2 = mempty(dictMonoid);
+  return function(dictFoldable) {
+    var foldl3 = foldl(dictFoldable);
+    return function(dictApplicative) {
+      var pure23 = pure(dictApplicative);
+      var fn = function(acc) {
+        return function(elem3) {
+          var v = runExcept(elem3);
+          if (acc instanceof Left && v instanceof Left) {
+            return new Left(append2(acc.value0)(v.value0));
+          }
+          if (acc instanceof Left && v instanceof Right) {
+            return new Left(acc.value0);
+          }
+          if (acc instanceof Right && v instanceof Right) {
+            return new Right(append22(acc.value0)(pure23(v.value0)));
+          }
+          if (acc instanceof Right && v instanceof Left) {
+            return new Left(v.value0);
+          }
+          throw new Error("Failed pattern match at Yoga.JSON (line 662, column 5 - line 666, column 37): " + [acc.constructor.name, v.constructor.name]);
+        };
+      };
+      var $517 = foldl3(fn)(new Right(mempty2));
+      return function($518) {
+        return except2($517($518));
+      };
+    };
+  };
+};
+var sequenceCombining1 = /* @__PURE__ */ sequenceCombining(monoidArray)(foldableArray)(applicativeArray);
 var readImpl = function(dict) {
   return dict.readImpl;
 };
@@ -4673,6 +4755,24 @@ var readForeignNullable = function(dictReadForeign) {
       };
       return withExcept(map22(reformat))(bindFlipped3(map32(map1(toNullable))(traverse2(readImpl5)))(readNull2(o)));
     }
+  };
+};
+var readAtIdx = function(dictReadForeign) {
+  var readImpl5 = readImpl(dictReadForeign);
+  return function(i) {
+    return function(f) {
+      return withExcept(map22(ErrorAtIndex.create(i)))(readImpl5(f));
+    };
+  };
+};
+var readForeignArray = function(dictReadForeign) {
+  return {
+    readImpl: composeKleisliFlipped2(function() {
+      var $554 = mapWithIndex4(readAtIdx(dictReadForeign));
+      return function($555) {
+        return sequenceCombining1($554($555));
+      };
+    }())(readArray2)
   };
 };
 var read3 = function(dictReadForeign) {
@@ -5307,6 +5407,7 @@ var read5 = /* @__PURE__ */ read3(/* @__PURE__ */ readForeignRecord2(/* @__PURE_
   }
 })(readForeignString)(readForeignFieldsNilRowRo)()()));
 var map12 = /* @__PURE__ */ map(functorEither);
+var readForeignArray2 = /* @__PURE__ */ readForeignArray(readForeignInt);
 var read1 = /* @__PURE__ */ read3(/* @__PURE__ */ readForeignRecord2(/* @__PURE__ */ readForeignFieldsCons({
   reflectSymbol: function() {
     return "duration";
@@ -5315,7 +5416,15 @@ var read1 = /* @__PURE__ */ read3(/* @__PURE__ */ readForeignRecord2(/* @__PURE_
   reflectSymbol: function() {
     return "fps";
   }
-})(readForeignInt)(readForeignFieldsNilRowRo)()())()()));
+})(readForeignInt)(/* @__PURE__ */ readForeignFieldsCons({
+  reflectSymbol: function() {
+    return "keyframeFrames";
+  }
+})(readForeignArray2)(/* @__PURE__ */ readForeignFieldsCons({
+  reflectSymbol: function() {
+    return "sceneFrames";
+  }
+})(readForeignArray2)(readForeignFieldsNilRowRo)()())()())()())()()));
 var heightIsSymbol = {
   reflectSymbol: function() {
     return "height";
@@ -5435,8 +5544,8 @@ var launch = function(executable) {
           return function(failed) {
             return function __do() {
               var child = spawn4(executable)(append12([path, "--frame-server", "--theme", show13(theme), "--max-width", "1440", "--max-height", "720"])(function() {
-                var $137 = eq3(transparency)(PaintBackground.value);
-                if ($137) {
+                var $150 = eq3(transparency)(PaintBackground.value);
+                if ($150) {
                   return ["--background"];
                 }
                 return [];
@@ -5469,22 +5578,22 @@ var launch = function(executable) {
               };
               on_(errorH2)(function(err) {
                 return report(message2(err) + function() {
-                  var $138 = code(err) === "ENOENT";
-                  if ($138) {
+                  var $151 = code(err) === "ENOENT";
+                  if ($151) {
                     return `
 The packaged native renderer is missing. Reinstall or rebuild the Markgraf agent integration package.`;
                   }
                   return "";
                 }());
               })(child)();
-              on_(errorH3)(function($142) {
-                return report(message($142));
+              on_(errorH3)(function($155) {
+                return report(message($155));
               })(stdin(child))();
-              on_(errorH3)(function($143) {
-                return report(message($143));
+              on_(errorH3)(function($156) {
+                return report(message($156));
               })(stdout(child))();
-              on_(errorH3)(function($144) {
-                return report(message($144));
+              on_(errorH3)(function($157) {
+                return report(message($157));
               })(stderr(child))();
               on_(lineH)(function(line) {
                 return write(new Just(line))(diagnostic);
@@ -5708,11 +5817,11 @@ var when2 = /* @__PURE__ */ when(applicativeAff);
 var bind3 = /* @__PURE__ */ bind(bindAff);
 var liftEffect3 = /* @__PURE__ */ liftEffect(monadEffectAff);
 var pure7 = /* @__PURE__ */ pure(applicativeAff);
+var div3 = /* @__PURE__ */ div(euclideanRingInt);
 var min3 = /* @__PURE__ */ min(ordNumber);
 var max3 = /* @__PURE__ */ max(ordNumber);
 var max1 = /* @__PURE__ */ max(ordInt);
 var min1 = /* @__PURE__ */ min(ordInt);
-var div1 = /* @__PURE__ */ div(euclideanRingInt);
 var bind1 = /* @__PURE__ */ bind(bindEffect);
 var pure12 = /* @__PURE__ */ pure(applicativeEffect);
 var when1 = /* @__PURE__ */ when(applicativeEffect);
@@ -5799,6 +5908,26 @@ var Step = /* @__PURE__ */ function() {
   };
   return Step2;
 }();
+var PreviousKeyframe = /* @__PURE__ */ function() {
+  function PreviousKeyframe2() {}
+  PreviousKeyframe2.value = new PreviousKeyframe2;
+  return PreviousKeyframe2;
+}();
+var NextKeyframe = /* @__PURE__ */ function() {
+  function NextKeyframe2() {}
+  NextKeyframe2.value = new NextKeyframe2;
+  return NextKeyframe2;
+}();
+var PreviousScene = /* @__PURE__ */ function() {
+  function PreviousScene2() {}
+  PreviousScene2.value = new PreviousScene2;
+  return PreviousScene2;
+}();
+var NextScene = /* @__PURE__ */ function() {
+  function NextScene2() {}
+  NextScene2.value = new NextScene2;
+  return NextScene2;
+}();
 var Accepted = /* @__PURE__ */ function() {
   function Accepted2() {}
   Accepted2.value = new Accepted2;
@@ -5856,11 +5985,70 @@ var resolve2 = function(root) {
   };
 };
 var protocolAcknowledgement = function(response) {
-  var $88 = response === "OK";
-  if ($88) {
+  var $92 = response === "OK";
+  if ($92) {
     return Consumed2.value;
   }
   return new Rejected("Kitty shared-memory transfer failed: " + response);
+};
+var previousStopAt = function($copy_frames) {
+  return function($copy_current) {
+    return function($copy_lower) {
+      return function($copy_upper) {
+        return function($copy_result) {
+          var $tco_var_frames = $copy_frames;
+          var $tco_var_current = $copy_current;
+          var $tco_var_lower = $copy_lower;
+          var $tco_var_upper = $copy_upper;
+          var $tco_done = false;
+          var $tco_result;
+          function $tco_loop(frames, current, lower, upper, result) {
+            if (lower > upper) {
+              $tco_done = true;
+              return result;
+            }
+            if (otherwise) {
+              var middle = div3(lower + upper | 0)(2);
+              var v = index(frames)(middle);
+              if (v instanceof Just) {
+                if (v.value0 < current) {
+                  $tco_var_frames = frames;
+                  $tco_var_current = current;
+                  $tco_var_lower = middle + 1 | 0;
+                  $tco_var_upper = upper;
+                  $copy_result = v.value0;
+                  return;
+                }
+                if (otherwise) {
+                  $tco_var_frames = frames;
+                  $tco_var_current = current;
+                  $tco_var_lower = lower;
+                  $tco_var_upper = middle - 1 | 0;
+                  $copy_result = result;
+                  return;
+                }
+              }
+              if (v instanceof Nothing) {
+                $tco_done = true;
+                return result;
+              }
+              throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 410, column 9 - line 414, column 28): " + [v.constructor.name]);
+            }
+            throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 403, column 1 - line 403, column 63): " + [frames.constructor.name, current.constructor.name, lower.constructor.name, upper.constructor.name, result.constructor.name]);
+          }
+          while (!$tco_done) {
+            $tco_result = $tco_loop($tco_var_frames, $tco_var_current, $tco_var_lower, $tco_var_upper, $copy_result);
+          }
+          return $tco_result;
+        };
+      };
+    };
+  };
+};
+var previousStop = function(frames) {
+  return function(current) {
+    return previousStopAt(frames)(current)(0)(length(frames) - 1 | 0)(0);
+  };
 };
 var playhead = function(state2) {
   return function(now2) {
@@ -5872,8 +6060,67 @@ var playhead = function(state2) {
     }()));
   };
 };
+var nextStopAt = function($copy_frames) {
+  return function($copy_current) {
+    return function($copy_lower) {
+      return function($copy_upper) {
+        return function($copy_result) {
+          var $tco_var_frames = $copy_frames;
+          var $tco_var_current = $copy_current;
+          var $tco_var_lower = $copy_lower;
+          var $tco_var_upper = $copy_upper;
+          var $tco_done = false;
+          var $tco_result;
+          function $tco_loop(frames, current, lower, upper, result) {
+            if (lower > upper) {
+              $tco_done = true;
+              return result;
+            }
+            if (otherwise) {
+              var middle = div3(lower + upper | 0)(2);
+              var v = index(frames)(middle);
+              if (v instanceof Just) {
+                if (v.value0 > current) {
+                  $tco_var_frames = frames;
+                  $tco_var_current = current;
+                  $tco_var_lower = lower;
+                  $tco_var_upper = middle - 1 | 0;
+                  $copy_result = v.value0;
+                  return;
+                }
+                if (otherwise) {
+                  $tco_var_frames = frames;
+                  $tco_var_current = current;
+                  $tco_var_lower = middle + 1 | 0;
+                  $tco_var_upper = upper;
+                  $copy_result = result;
+                  return;
+                }
+              }
+              if (v instanceof Nothing) {
+                $tco_done = true;
+                return result;
+              }
+              throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 426, column 9 - line 430, column 28): " + [v.constructor.name]);
+            }
+            throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 419, column 1 - line 419, column 59): " + [frames.constructor.name, current.constructor.name, lower.constructor.name, upper.constructor.name, result.constructor.name]);
+          }
+          while (!$tco_done) {
+            $tco_result = $tco_loop($tco_var_frames, $tco_var_current, $tco_var_lower, $tco_var_upper, $copy_result);
+          }
+          return $tco_result;
+        };
+      };
+    };
+  };
+};
+var nextStop = function(frames) {
+  return function(current) {
+    return nextStopAt(frames)(current)(0)(length(frames) - 1 | 0)(current);
+  };
+};
 var fitViewport = function(size5) {
-  var rows = max1(1)(min1(floor2(720 / size5.cellHeight))(min1(18)(div1(size5.rows - 6 | 0)(2))));
+  var rows = max1(1)(min1(floor2(720 / size5.cellHeight))(min1(18)(div3(size5.rows - 6 | 0)(2))));
   var columns = max1(1)(min1(floor2(1440 / size5.cellWidth))(min1(297)(size5.columns - 2 | 0)));
   return {
     width: max1(1)(min1(1440)(floor2(toNumber(columns) * size5.cellWidth))),
@@ -5890,6 +6137,8 @@ var create = function(options2) {
         ready: false,
         duration: 0,
         fps: 120,
+        sceneFrames: [],
+        keyframeFrames: [],
         playing: options2.position.playing,
         baseTime: options2.position.time,
         epoch: 0,
@@ -5928,8 +6177,8 @@ var create = function(options2) {
       };
       var shownMoment = function __do() {
         var state2 = read(stateRef)();
-        var $93 = state2.ready && (state2.visible && (!state2.disposed && state2.shownIndex >= 0));
-        if ($93) {
+        var $111 = state2.ready && (state2.visible && (!state2.disposed && state2.shownIndex >= 0));
+        if ($111) {
           return new Just({
             time: min3(state2.duration)(toNumber(state2.shownIndex) / toNumber(state2.fps)),
             frame: state2.shownIndex,
@@ -5949,9 +6198,11 @@ var create = function(options2) {
             duration: s.duration,
             epoch: s.epoch,
             fps: s.fps,
+            keyframeFrames: s.keyframeFrames,
             pipeline: s.pipeline,
             playing: s.playing,
             ready: s.ready,
+            sceneFrames: s.sceneFrames,
             shownIndex: s.shownIndex,
             shownRevision: s.shownRevision,
             size: current,
@@ -5963,8 +6214,8 @@ var create = function(options2) {
         var allowed = surface.observeImage();
         var time = max3(0)(min3(state2.duration)(toNumber(state2.shownIndex) / toNumber(state2.fps)));
         var status = basename(options2.path) + (" · " + function() {
-          var $94 = !state2.ready;
-          if ($94) {
+          var $112 = !state2.ready;
+          if ($112) {
             return "Starting native Metal renderer...";
           }
           return seconds(time) + ("/" + (seconds(state2.duration) + ("s · " + function() {
@@ -5977,7 +6228,7 @@ var create = function(options2) {
         return {
           status,
           ready: state2.ready,
-          footer: "space pause/resume · ←/→ frame · home restart · q/esc close",
+          footer: "space play/pause · ←/→ keyframe · ↑/↓ scene · [/] frame · home · q/esc",
           size: state2.size,
           imageVisible: allowed
         };
@@ -5999,8 +6250,8 @@ var create = function(options2) {
                 var v = monotonicNowSec();
                 var time = playhead(state2)(v);
                 var index3 = function() {
-                  var $98 = time >= state2.duration;
-                  if ($98) {
+                  var $116 = time >= state2.duration;
+                  if ($116) {
                     return ceil2(state2.duration * toNumber(state2.fps));
                   }
                   if (state2.playing) {
@@ -6008,8 +6259,8 @@ var create = function(options2) {
                   }
                   return round2(time * toNumber(state2.fps));
                 }();
-                var $100 = index3 !== state2.shownIndex || state2.revision !== state2.shownRevision;
-                if ($100) {
+                var $118 = index3 !== state2.shownIndex || state2.revision !== state2.shownRevision;
+                if ($118) {
                   var request = {
                     revision: state2.revision,
                     index: index3,
@@ -6023,9 +6274,11 @@ var create = function(options2) {
                       duration: v1.duration,
                       epoch: v1.epoch,
                       fps: v1.fps,
+                      keyframeFrames: v1.keyframeFrames,
                       playing: v1.playing,
                       ready: v1.ready,
                       revision: v1.revision,
+                      sceneFrames: v1.sceneFrames,
                       shownIndex: v1.shownIndex,
                       shownRevision: v1.shownRevision,
                       size: v1.size,
@@ -6040,7 +6293,7 @@ var create = function(options2) {
                 return when1(state2.playing && time < state2.duration)(function() {
                   var deadline = state2.epoch + (toNumber(index3 + 1 | 0) / toNumber(state2.fps) - state2.baseTime);
                   return function __do() {
-                    var timer = setTimeout2(max1(1)(ceil2((deadline - v) * 1000)))($lazy_pump(219))();
+                    var timer = setTimeout2(max1(1)(ceil2((deadline - v) * 1000)))($lazy_pump(224))();
                     return write(new Just(timer))(tickRef)();
                   };
                 }())();
@@ -6050,7 +6303,7 @@ var create = function(options2) {
           }())();
         };
       });
-      var pump = $lazy_pump(198);
+      var pump = $lazy_pump(203);
       var painted = function(paint) {
         return function __do() {
           var state2 = read(stateRef)();
@@ -6064,9 +6317,11 @@ var create = function(options2) {
                   duration: s.duration,
                   epoch: s.epoch,
                   fps: s.fps,
+                  keyframeFrames: s.keyframeFrames,
                   pipeline: s.pipeline,
                   playing: s.playing,
                   ready: s.ready,
+                  sceneFrames: s.sceneFrames,
                   shownIndex: s.shownIndex,
                   shownRevision: s.shownRevision,
                   size: s.size,
@@ -6095,8 +6350,10 @@ var create = function(options2) {
                 fps: s.fps,
                 alt: s.alt,
                 disposed: s.disposed,
+                keyframeFrames: s.keyframeFrames,
                 pipeline: s.pipeline,
                 ready: s.ready,
+                sceneFrames: s.sceneFrames,
                 shownIndex: s.shownIndex,
                 shownRevision: s.shownRevision,
                 size: s.size,
@@ -6130,10 +6387,12 @@ var create = function(options2) {
               duration: v.duration,
               epoch: v.epoch,
               fps: v.fps,
+              keyframeFrames: v.keyframeFrames,
               pipeline: v.pipeline,
               playing: v.playing,
               ready: v.ready,
               revision: v.revision,
+              sceneFrames: v.sceneFrames,
               shownIndex: v.shownIndex,
               shownRevision: v.shownRevision,
               size: v.size,
@@ -6155,9 +6414,11 @@ var create = function(options2) {
                 duration: v.duration,
                 epoch: v.epoch,
                 fps: v.fps,
+                keyframeFrames: v.keyframeFrames,
                 playing: v.playing,
                 ready: v.ready,
                 revision: v.revision,
+                sceneFrames: v.sceneFrames,
                 shownIndex: v.shownIndex,
                 shownRevision: v.shownRevision,
                 size: v.size,
@@ -6193,6 +6454,10 @@ var create = function(options2) {
           var v = monotonicNowSec();
           var time = playhead(state2)(v);
           var index3 = function() {
+            var $127 = time >= state2.duration;
+            if ($127) {
+              return ceil2(state2.duration * toNumber(state2.fps));
+            }
             if (state2.playing) {
               return floor2(time * toNumber(state2.fps));
             }
@@ -6203,8 +6468,8 @@ var create = function(options2) {
           }
           if (action instanceof TogglePlayback) {
             return when1(state2.ready)(seek(function() {
-              var $111 = !state2.playing && time >= state2.duration;
-              if ($111) {
+              var $130 = !state2.playing && time >= state2.duration;
+              if ($130) {
                 return 0;
               }
               return index3;
@@ -6216,7 +6481,19 @@ var create = function(options2) {
           if (action instanceof Step) {
             return when1(state2.ready)(seek(index3 + action.value0 | 0)(false))();
           }
-          throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 329, column 7 - line 333, column 68): " + [action.constructor.name]);
+          if (action instanceof PreviousKeyframe) {
+            return when1(state2.ready)(seek(previousStop(state2.keyframeFrames)(index3))(false))();
+          }
+          if (action instanceof NextKeyframe) {
+            return when1(state2.ready)(seek(nextStop(state2.keyframeFrames)(index3))(false))();
+          }
+          if (action instanceof PreviousScene) {
+            return when1(state2.ready)(seek(previousStop(state2.sceneFrames)(index3))(false))();
+          }
+          if (action instanceof NextScene) {
+            return when1(state2.ready)(seek(nextStop(state2.sceneFrames)(index3))(false))();
+          }
+          throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 337, column 7 - line 345, column 86): " + [action.constructor.name]);
         };
       };
       var completeTransfer = function(request) {
@@ -6233,8 +6510,10 @@ var create = function(options2) {
               alt: s.alt,
               disposed: s.disposed,
               fps: s.fps,
+              keyframeFrames: s.keyframeFrames,
               ready: s.ready,
               revision: s.revision,
+              sceneFrames: s.sceneFrames,
               size: s.size,
               visible: s.visible,
               pipeline: Idle.value,
@@ -6284,6 +6563,8 @@ var create = function(options2) {
                 ready: true,
                 duration: event.value0.duration,
                 fps: event.value0.fps,
+                sceneFrames: event.value0.sceneFrames,
+                keyframeFrames: event.value0.keyframeFrames,
                 epoch: v,
                 baseTime: max3(0)(min3(event.value0.duration)(state2.baseTime))
               };
@@ -6294,8 +6575,8 @@ var create = function(options2) {
           if (event instanceof Rendered) {
             if (state2.pipeline instanceof Rendering) {
               var active = surface.active();
-              var $121 = state2.disposed || (!state2.visible || (!active || state2.pipeline.value0.revision !== state2.revision));
-              if ($121) {
+              var $140 = state2.disposed || (!state2.visible || (!active || state2.pipeline.value0.revision !== state2.revision));
+              if ($140) {
                 bind1(read(processRef))(traverse_2(function($$native) {
                   return $$native.release(event.value0.id);
                 }))();
@@ -6307,9 +6588,11 @@ var create = function(options2) {
                     duration: v2.duration,
                     epoch: v2.epoch,
                     fps: v2.fps,
+                    keyframeFrames: v2.keyframeFrames,
                     playing: v2.playing,
                     ready: v2.ready,
                     revision: v2.revision,
+                    sceneFrames: v2.sceneFrames,
                     shownIndex: v2.shownIndex,
                     shownRevision: v2.shownRevision,
                     size: v2.size,
@@ -6327,9 +6610,11 @@ var create = function(options2) {
                   duration: v2.duration,
                   epoch: v2.epoch,
                   fps: v2.fps,
+                  keyframeFrames: v2.keyframeFrames,
                   playing: v2.playing,
                   ready: v2.ready,
                   revision: v2.revision,
+                  sceneFrames: v2.sceneFrames,
                   shownIndex: v2.shownIndex,
                   shownRevision: v2.shownRevision,
                   size: v2.size,
@@ -6346,9 +6631,11 @@ var create = function(options2) {
                     duration: v2.duration,
                     epoch: v2.epoch,
                     fps: v2.fps,
+                    keyframeFrames: v2.keyframeFrames,
                     playing: v2.playing,
                     ready: v2.ready,
                     revision: v2.revision,
+                    sceneFrames: v2.sceneFrames,
                     shownIndex: v2.shownIndex,
                     shownRevision: v2.shownRevision,
                     size: v2.size,
@@ -6372,9 +6659,11 @@ var create = function(options2) {
                     duration: v2.duration,
                     epoch: v2.epoch,
                     fps: v2.fps,
+                    keyframeFrames: v2.keyframeFrames,
                     playing: v2.playing,
                     ready: v2.ready,
                     revision: v2.revision,
+                    sceneFrames: v2.sceneFrames,
                     shownIndex: v2.shownIndex,
                     shownRevision: v2.shownRevision,
                     size: v2.size,
@@ -6387,7 +6676,7 @@ var create = function(options2) {
               if (sent instanceof Right) {
                 return unit;
               }
-              throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 292, column 15 - line 296, column 37): " + [sent.constructor.name]);
+              throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 297, column 15 - line 301, column 37): " + [sent.constructor.name]);
             }
             return unless1(state2.disposed)(failPlayback("Native renderer sent an unsolicited frame."))();
           }
@@ -6416,9 +6705,11 @@ var create = function(options2) {
                   duration: v.duration,
                   epoch: v.epoch,
                   fps: v.fps,
+                  keyframeFrames: v.keyframeFrames,
                   playing: v.playing,
                   ready: v.ready,
                   revision: v.revision,
+                  sceneFrames: v.sceneFrames,
                   shownIndex: v.shownIndex,
                   shownRevision: v.shownRevision,
                   size: v.size,
@@ -6449,9 +6740,11 @@ var create = function(options2) {
                   duration: v.duration,
                   epoch: v.epoch,
                   fps: v.fps,
+                  keyframeFrames: v.keyframeFrames,
                   playing: v.playing,
                   ready: v.ready,
                   revision: v.revision,
+                  sceneFrames: v.sceneFrames,
                   shownIndex: v.shownIndex,
                   shownRevision: v.shownRevision,
                   size: v.size,
@@ -6477,9 +6770,11 @@ var create = function(options2) {
                   duration: v.duration,
                   epoch: v.epoch,
                   fps: v.fps,
+                  keyframeFrames: v.keyframeFrames,
                   playing: v.playing,
                   ready: v.ready,
                   revision: v.revision,
+                  sceneFrames: v.sceneFrames,
                   shownIndex: v.shownIndex,
                   shownRevision: v.shownRevision,
                   size: v.size,
@@ -6492,7 +6787,7 @@ var create = function(options2) {
               }
               return failPlayback(response.value0)();
             }
-            throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 249, column 47 - line 265, column 74): " + [response.constructor.name]);
+            throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 254, column 47 - line 270, column 74): " + [response.constructor.name]);
           }
           return unit;
         };
@@ -6515,7 +6810,7 @@ var create = function(options2) {
           dispose: cleanup
         };
       }
-      throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 379, column 3 - line 383, column 70): " + [launched.constructor.name]);
+      throw new Error("Failed pattern match at Markgraf.Terminal.Player (line 391, column 3 - line 395, column 70): " + [launched.constructor.name]);
     };
   };
 };
@@ -6726,7 +7021,7 @@ var createPlayer = function(request) {
             return lines;
           }();
           var line = formatLine(surface.theme)(width);
-          return append4([line(view.status)])(append4(rows)([line(view.footer + " · ? ask")]));
+          return append4([line(view.status)])(append4(rows)([line("? ask · " + view.footer)]));
         };
       };
       var handleInput = function(key) {
@@ -6748,15 +7043,27 @@ var createPlayer = function(request) {
           return player.input(Restart.value);
         }
         if (matchesKey(key)("left")) {
-          return player.input(new Step(-1 | 0));
+          return player.input(PreviousKeyframe.value);
         }
         if (matchesKey(key)("right")) {
+          return player.input(NextKeyframe.value);
+        }
+        if (matchesKey(key)("[")) {
+          return player.input(new Step(-1 | 0));
+        }
+        if (matchesKey(key)("]")) {
           return player.input(new Step(1));
+        }
+        if (matchesKey(key)("up")) {
+          return player.input(PreviousScene.value);
+        }
+        if (matchesKey(key)("down")) {
+          return player.input(NextScene.value);
         }
         if (otherwise) {
           return pure8(unit);
         }
-        throw new Error("Failed pattern match at Markgraf.Omp (line 78, column 5 - line 87, column 30): " + [key.constructor.name]);
+        throw new Error("Failed pattern match at Markgraf.Omp (line 78, column 5 - line 91, column 30): " + [key.constructor.name]);
       };
       return {
         render,

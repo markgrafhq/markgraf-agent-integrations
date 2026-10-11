@@ -1,3 +1,20 @@
+// npm/output/Control.Apply/foreign.js
+var arrayApply = function(fs) {
+  return function(xs) {
+    var l = fs.length;
+    var k = xs.length;
+    var result = new Array(l * k);
+    var n = 0;
+    for (var i = 0;i < l; i++) {
+      var f = fs[i];
+      for (var j = 0;j < k; j++) {
+        result[n++] = f(xs[j]);
+      }
+    }
+    return result;
+  };
+};
+
 // npm/output/Control.Semigroupoid/index.js
 var semigroupoidFn = {
   compose: function(f) {
@@ -100,6 +117,12 @@ var functorArray = {
 
 // npm/output/Control.Apply/index.js
 var identity2 = /* @__PURE__ */ identity(categoryFn);
+var applyArray = {
+  apply: arrayApply,
+  Functor0: function() {
+    return functorArray;
+  }
+};
 var apply = function(dict) {
   return dict.apply;
 };
@@ -153,6 +176,14 @@ var liftA1 = function(dictApplicative) {
       return apply2(pure1(f))(a);
     };
   };
+};
+var applicativeArray = {
+  pure: function(x) {
+    return [x];
+  },
+  Apply0: function() {
+    return applyArray;
+  }
 };
 
 // npm/output/Control.Bind/foreign.js
@@ -3601,6 +3632,9 @@ function tagOf(value) {
 function isNull(value) {
   return value === null;
 }
+var isArray = Array.isArray || function(value) {
+  return Object.prototype.toString.call(value) === "[object Array]";
+};
 // npm/output/Data.List.NonEmpty/index.js
 var singleton4 = /* @__PURE__ */ function() {
   var $200 = singleton2(plusList);
@@ -3771,6 +3805,19 @@ var fail = function(dictMonad) {
   var $153 = throwError(monadThrowExceptT(dictMonad));
   return function($154) {
     return $153(singleton4($154));
+  };
+};
+var readArray = function(dictMonad) {
+  var pure1 = pure(applicativeExceptT(dictMonad));
+  var fail1 = fail(dictMonad);
+  return function(value) {
+    if (isArray(value)) {
+      return pure1(unsafeFromForeign(value));
+    }
+    if (otherwise) {
+      return fail1(new TypeMismatch("array", tagOf(value)));
+    }
+    throw new Error("Failed pattern match at Foreign (line 164, column 1 - line 164, column 99): " + [value.constructor.name]);
   };
 };
 var unsafeReadTagged = function(dictMonad) {
@@ -4476,6 +4523,8 @@ var readNull2 = /* @__PURE__ */ readNull(monadIdentity);
 var lmap2 = /* @__PURE__ */ lmap(bifunctorEither);
 var composeKleisliFlipped2 = /* @__PURE__ */ composeKleisliFlipped(bindExceptT2);
 var readProp2 = /* @__PURE__ */ readProp(monadIdentity);
+var mapWithIndex4 = /* @__PURE__ */ mapWithIndex(functorWithIndexArray);
+var readArray2 = /* @__PURE__ */ readArray(monadIdentity);
 var writeForeignString = {
   writeImpl: unsafeToForeign
 };
@@ -4590,6 +4639,39 @@ var writeForeignNullable = function(dictWriteForeign) {
 var write3 = function(dictWriteForeign) {
   return writeImpl(dictWriteForeign);
 };
+var sequenceCombining = function(dictMonoid) {
+  var append22 = append(dictMonoid.Semigroup0());
+  var mempty3 = mempty(dictMonoid);
+  return function(dictFoldable) {
+    var foldl3 = foldl(dictFoldable);
+    return function(dictApplicative) {
+      var pure23 = pure(dictApplicative);
+      var fn = function(acc) {
+        return function(elem3) {
+          var v = runExcept(elem3);
+          if (acc instanceof Left && v instanceof Left) {
+            return new Left(append2(acc.value0)(v.value0));
+          }
+          if (acc instanceof Left && v instanceof Right) {
+            return new Left(acc.value0);
+          }
+          if (acc instanceof Right && v instanceof Right) {
+            return new Right(append22(acc.value0)(pure23(v.value0)));
+          }
+          if (acc instanceof Right && v instanceof Left) {
+            return new Left(v.value0);
+          }
+          throw new Error("Failed pattern match at Yoga.JSON (line 662, column 5 - line 666, column 37): " + [acc.constructor.name, v.constructor.name]);
+        };
+      };
+      var $517 = foldl3(fn)(new Right(mempty3));
+      return function($518) {
+        return except2($517($518));
+      };
+    };
+  };
+};
+var sequenceCombining1 = /* @__PURE__ */ sequenceCombining(monoidArray)(foldableArray)(applicativeArray);
 var readImpl = function(dict) {
   return dict.readImpl;
 };
@@ -4605,6 +4687,24 @@ var readForeignNullable = function(dictReadForeign) {
       };
       return withExcept(map22(reformat))(bindFlipped3(map32(map12(toNullable))(traverse2(readImpl5)))(readNull2(o)));
     }
+  };
+};
+var readAtIdx = function(dictReadForeign) {
+  var readImpl5 = readImpl(dictReadForeign);
+  return function(i) {
+    return function(f) {
+      return withExcept(map22(ErrorAtIndex.create(i)))(readImpl5(f));
+    };
+  };
+};
+var readForeignArray = function(dictReadForeign) {
+  return {
+    readImpl: composeKleisliFlipped2(function() {
+      var $554 = mapWithIndex4(readAtIdx(dictReadForeign));
+      return function($555) {
+        return sequenceCombining1($554($555));
+      };
+    }())(readArray2)
   };
 };
 var read3 = function(dictReadForeign) {

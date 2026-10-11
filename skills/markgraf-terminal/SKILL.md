@@ -28,7 +28,8 @@ markgraf "animation.markgraf" --terminal-graphics --fps 120
 
 - Use a foreground terminal session that passes graphics requests **and replies** unchanged. A PTY alone does not prove graphics support.
 - This CLI mode uses the current terminal's fullscreen buffer and restores the previous screen on exit. It does not open another terminal or a browser.
-- Space pauses/resumes; Left/Right step a frame; `q` or Escape quits. Ctrl-C cancels.
+- Space pauses/resumes; Left/Right navigate keyframes; Up/Down navigate named scenes; `[` and `]` step one frame. Navigation pauses and clamps at the beginning or end.
+- `q` or Escape quits. Ctrl-C cancels.
 - The default scheduling target is 120 fps, not a promise of 120 delivered or displayed frames per second. Late frames are skipped rather than queued.
 - Backgrounds are transparent by default. Add `--background` only when paper is requested.
 - Use `--theme light` or `--theme dark` when the desired palette is known. Do not infer a terminal's palette from the OS theme.

@@ -26,16 +26,25 @@ Inside omp:
 /markgraf /path/to/animation.markgraf
 ```
 
-Space pauses/resumes, left/right arrows pause and step by 1/120 second, Home
-returns to the beginning, and `q`, Escape, or Ctrl-C closes the player and
-restores the editor. Playback loops and fits the available terminal size.
+Space pauses/resumes. Left/right arrows navigate keyframes; up/down arrows
+move between named scenes; `[` and `]` step backward/forward one frame.
+Navigation pauses playback and clamps at the beginning or end.
+Home returns to the beginning; `q`, Escape, or
+Ctrl-C closes the player and restores the editor. Playback loops and fits the
+available terminal size.
+
+Keyframe stops include generated states and land at completed structural
+transitions. Scene stops are coarser: named `scene`, `still`, and `title`
+sections, including nested diagrams, plus the beginning and end. Up from
+within a scene returns to its start; at a boundary it goes to the preceding
+scene.
 
 Press `?` to ask about a moment. The player closes and inserts the diagram path,
 exact sample time, frame number, and frame rate into your existing composer
 draft. Type your question and send it normally; nothing is submitted
 automatically. The timestamp comes from the last frame acknowledged by the
-terminal, not a clock that keeps advancing while you type. Pause and use the
-arrow keys first to select a particular frame.
+terminal, not a clock that keeps advancing while you type. Use the arrows to
+find the scene, then `[` and `]` to select a particular frame.
 
 This question shortcut is currently omp-only. OpenCode's published plugin API
 does not expose owner-scoped composer editing, so it does not receive a shortcut
