@@ -26,7 +26,7 @@ Inside omp:
 /markgraf /path/to/animation.markgraf
 ```
 
-Space pauses/resumes, left/right arrows pause and step by 1/240 second, Home
+Space pauses/resumes, left/right arrows pause and step by 1/120 second, Home
 returns to the beginning, and `q`, Escape, or Ctrl-C closes the player and
 restores the editor. Playback loops and fits the available terminal size.
 When opened, the player selects Markgraf's light or dark palette from omp's
@@ -43,12 +43,12 @@ raw RGBA through private POSIX shared memory. No SVG rasterization, PNG compress
 or base64 pixel transfer runs through omp. omp owns placement and controls,
 not frame rendering.
 
-Playback targets 240 fps independently of omp's ordinary text repaint cadence.
+Playback targets 120 fps independently of omp's ordinary text repaint cadence.
 Absolute deadlines skip late frames instead of slowing the animation or building
 a queue. Only one frame is outstanding; its mapping remains alive until Kitty
 acknowledges it, including when playback is cancelled. Paused images survive
 resize and screen restoration. Actual throughput depends on scene complexity,
-native rendering, GPU readback, and the terminal; 240 fps is not guaranteed.
+native rendering, GPU readback, and the terminal; 120 fps is not guaranteed.
 Remote/shared-memory-incompatible terminals fail explicitly rather than silently
 falling back to PNG streaming. No FFmpeg process is used for inline playback.
 
@@ -143,7 +143,7 @@ The CLI is the rendering interface:
 
 ```sh
 markgraf animation.markgraf --check
-markgraf animation.markgraf --terminal-graphics --fps 240
+markgraf animation.markgraf --terminal-graphics --fps 120
 ```
 
 When installed as a plugin, the package includes the matching CLI at
@@ -154,7 +154,7 @@ The distributed native app requires Apple Silicon macOS.
 Graphics playback runs in the foreground of the current terminal and restores
 its previous screen on exit. It requires Kitty graphics support, such as local
 Kitty or Ghostty. Space pauses/resumes, arrows step, and `q` or Escape exits.
-The target is 240 fps, not a throughput guarantee. Backgrounds are transparent;
+The target is 120 fps, not a throughput guarantee. Backgrounds are transparent;
 `--background` opts into theme paper and `--theme light|dark` selects the palette.
 `--play` opens the native editor and is not the terminal graphics command.
 

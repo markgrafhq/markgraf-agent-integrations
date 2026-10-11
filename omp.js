@@ -5887,7 +5887,7 @@ var create = function(options2) {
       var stateRef = $$new({
         ready: false,
         duration: 0,
-        fps: 240,
+        fps: 120,
         playing: options2.position.playing,
         baseTime: options2.position.time,
         epoch: 0,
